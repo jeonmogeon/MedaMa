@@ -6,17 +6,16 @@ import re
 import datetime
 import socket
 
-proxyserver = 'localhost989'
-
+proxyserver = 'localhost'
 proxyDict = {"https" : proxyserver}
 if proxyserver == 'localhost':
     proxyDict = {}
+    
 path_dir = 'downloads'
 if not os.path.exists(path_dir):
     os.mkdir(path_dir)
 
-if __name__ == "__main__":
-    id = input("? ")
+def download_from_id(id):
     jsurl = f'https://ltn.hitomi.la/galleries/{id}.js'
     jsreq = requests.get(jsurl, proxies=proxyDict)
     if(jsreq.status_code!=200):
@@ -93,6 +92,9 @@ if __name__ == "__main__":
             imgfile.close()
     print(f"\r[{id}] Download Complete")
 
+if __name__ == "__main__":
+    id = input("? ")
+    download_from_id(id)
 
 # 해시가 12313123123123asda 이러면 끝의 세자리 sda에서 a / sd / $hash
 # https:// a . hitomi . la / images / (해시변환) . 확장자
