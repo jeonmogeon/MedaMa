@@ -14,6 +14,8 @@ if proxyserver == 'localhost':
 path_dir = 'downloads'
 if not os.path.exists(path_dir):
     os.mkdir(path_dir)
+if not os.path.exists(os.path.join("data","db")):
+    os.mkdir(os.path.join("data","db"))
 
 db = {
     "id":os.path.join(os.path.join("data","db"),"id"),
