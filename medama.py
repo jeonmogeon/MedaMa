@@ -18,6 +18,7 @@ if not os.path.exists(path_dir):
 if not os.path.exists(os.path.join("data","db")):
     os.mkdir(os.path.join("data","db"))
 
+db_path = os.path.join("data","db")
 db = {
     "id":os.path.join(os.path.join("data","db"),"id"),
     "tag":os.path.join(os.path.join("data","db"),"tag"),
@@ -52,7 +53,7 @@ def download_from_id(id):
     tagfile.write("__ReaderURL__\n")
     tagfile.write(f"{f'https://hitomi.la/reader/{id}.html'}\n")
     tagfile.write("__TagInfo__\n")
-    if galjson['tags']!='null'
+    if galjson['tags']!='null':
         for tags in galjson['tags']:
             if 'female' in tags.keys():
                 if tags['female']:
@@ -170,7 +171,10 @@ if __name__ == "__main__":
     if len(sys.argv)>1:
         if sys.argv[1]=="-db":
             print("DB Mode")
-            for id in range(0,2000000):
+            start = open(os.path.join(db_path,'db.tld'),'r').readline()
+            print(f"Start from {start}")
+            for id in range(int(start),2000000):
+                open(os.path.join(db_path,'db.tld'),'w').write(str(id))
                 try:
                     data_dict = data_from_id(id)
                     if data_dict:
