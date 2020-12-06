@@ -3,10 +3,11 @@ import os
 import sys
 import json
 import re
+import time
 import datetime
 import socket
 
-proxyserver = 'localhost'
+proxyserver = 'http://mj03.xyz:37431'
 proxyDict = {"https" : proxyserver}
 if proxyserver == 'localhost':
     proxyDict = {}
@@ -51,15 +52,16 @@ def download_from_id(id):
     tagfile.write("__ReaderURL__\n")
     tagfile.write(f"{f'https://hitomi.la/reader/{id}.html'}\n")
     tagfile.write("__TagInfo__\n")
-    for tags in galjson['tags']:
-        if 'female' in tags.keys():
-            if tags['female']:
-                sex = "female:"
-            elif tags['male']:
-                sex = "male:"
-        else:
-            sex = ""
-        tagfile.write(f"{sex}{tags['tag'].replace(' ','_')}\n")
+    if galjson['tags']!='null'
+        for tags in galjson['tags']:
+            if 'female' in tags.keys():
+                if tags['female']:
+                    sex = "female:"
+                elif tags['male']:
+                    sex = "male:"
+            else:
+                sex = ""
+            tagfile.write(f"{sex}{tags['tag'].replace(' ','_')}\n")
     tagfile.write("\n__DownloadInfo__\n")
     tagfile.write(f"Time: {str(datetime.datetime.now())}\n")
     tagfile.write(f"Proxy: {proxyserver}\n")
@@ -73,7 +75,16 @@ def download_from_id(id):
         name = files['name']
         fileurl = url_from_file_json(files)
         header = {'Referer':f'https://hitomi.la/reader/{id}.html'}
-        filereq = requests.get(fileurl, headers=header, proxies=proxyDict)
+        tries=0
+        while tries<4:
+            try:
+                filereq = requests.get(fileurl, headers=header, proxies=proxyDict)
+                break
+            except Exception as e:
+                print(f"[{id}] Error Retring.. {tries} (Download Error)")
+                tries+=1
+                time.sleep(1)
+                continue
         
         if filereq.status_code != 200:
             print(f"\n[{id}] Error (Download Error)")
@@ -109,15 +120,16 @@ def data_from_id(id):
     data['id'] = id
     data['language'] = galjson['language']
     tag_list = []
-    for tags in galjson['tags']:
-        if 'female' in tags.keys():
-            if tags['female']:
-                sex = "female:"
-            elif tags['male']:
-                sex = "male:"
-        else:
-            sex = "both:"
-        tag_list.append(f"{sex}{tags['tag'].replace(' ','_')}")
+    if galjson['tags']!="null":
+        for tags in galjson['tags']:
+            if 'female' in tags.keys():
+                if tags['female']:
+                    sex = "female:"
+                elif tags['male']:
+                    sex = "male:"
+            else:
+                sex = "both:"
+            tag_list.append(f"{sex}{tags['tag'].replace(' ','_')}")
     data['tag'] = tag_list
     data['type'] = galjson['type']
     data['date'] = galjson['date']
@@ -159,16 +171,19 @@ if __name__ == "__main__":
         if sys.argv[1]=="-db":
             print("DB Mode")
             for id in range(0,2000000):
-                data_dict = data_from_id(id)
-                if data_dict:
-                    open(os.path.join(db['id'],f"{id}.tld"),'a').write(json.dumps(data_dict))
-                    for tag in data_dict['tag']:
-                        sex = os.path.join(db['tag'],f"{tag.split(':')[0]}")
-                        if not os.path.exists(sex):
-                            os.mkdir(sex)
-                        open(os.path.join(sex,f"{tag.split(':')[1]}.tld"),'a').write(str(id)+"\n")
-                    open(os.path.join(db['language'],f"{data_dict['language']}.tld"),'a').write(str(id)+"\n")
-                    open(os.path.join(db['type'],f"{data_dict['type']}.tld"),'a').write(str(id)+"\n")
+                try:
+                    data_dict = data_from_id(id)
+                    if data_dict:
+                        open(os.path.join(db['id'],f"{id}.tld"),'a').write(json.dumps(data_dict))
+                        for tag in data_dict['tag']:
+                            sex = os.path.join(db['tag'],f"{tag.split(':')[0]}")
+                            if not os.path.exists(sex):
+                                os.mkdir(sex)
+                            open(os.path.join(sex,f"{tag.split(':')[1]}.tld"),'a').write(str(id)+"\n")
+                        open(os.path.join(db['language'],f"{data_dict['language']}.tld"),'a').write(str(id)+"\n")
+                        open(os.path.join(db['type'],f"{data_dict['type']}.tld"),'a').write(str(id)+"\n")
+                except Exception as e:
+                    print(f"Error: [{e}]")
             sys.exit()
 
     id = input("? ")
