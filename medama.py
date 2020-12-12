@@ -7,6 +7,7 @@ import time
 import datetime
 import socket
 
+nametype = "%id% - %title%"
 proxyserver = 'http://mj03.xyz:37431'
 proxyDict = {"https" : proxyserver}
 if proxyserver == 'localhost':
@@ -37,11 +38,15 @@ def download_from_id(id):
         print(f"[{id}] Error (ID Not exists)")
         return 0
 
-    path = os.path.join(path_dir, str(id))
+    galjson = json.loads(jsreq.content.decode('utf-8').split(' = ')[1].replace('null','"null"'))
+    try:
+        foldername = nametype.replace('%id%',str(id)).replace('%title%',galjson['title'])
+    except:
+        foldername = str(id)
+        
+    path = os.path.join(path_dir, foldername)
     if not os.path.exists(path):
         os.mkdir(path)
-
-    galjson = json.loads(jsreq.content.decode('utf-8').split(' = ')[1].replace('null','"null"'))
 
     if str(id) != galjson['id']:
         print(f"[{id}] Error (Fetch Error)")
